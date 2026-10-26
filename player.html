@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>PhraseLog Player</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+  #player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<!-- プレイヤーの上には要素を重ねない（HTML の中はプレイヤーの div だけ。PRD §4.4.1） -->
+<div id="player"></div>
+<script>
+(function () {
+  "use strict";
+
+  var LOOP_INTERVAL_MS = 50;      // ループの判定（PRD §4.4.2）
+  var TIME_INTERVAL_MS = 250;     // Swift への再生位置の通知
+  var MEASURE_INTERVAL_MS = 10;   // S-5 の計測
+  var API_TIMEOUT_MS = 15000;
+  // 読み込み元（Swift の baseURL、またはサイトで公開したこのページ）の origin を YouTube に渡す
+  var ORIGIN = (location.origin && location.origin !== "null") ? location.origin : "https://kigays.github.io";
+
+  var player = null;
+  var apiReady = false;
+  var playerReady = false;
+  var awaitingCue = false;
+  var pendingLoad = null;
+  var loop = null;          // { s, e }
+  var range = null;         // { s, e }
+  var comp = 0.05;          // comp = 0.05 × rate 秒（S-5 で確定）
+  var gap = 0;              // ループの間の休止（秒）
+  var wrapping = false;
+  var wrapGuardUntil = 0;
+  var measure = null;       // { target, startedAt, timer }
+
+  function post(message) {
+    try { window.webkit.messageHandlers.pl.postMessage(message); } catch (e) {}
+  }
+
+  function now() {
+    return (window.performance && performance.now) ? performance.now() : Date.now();
+  }
+
+  function has(name) {
+    return player && playerReady && typeof player[name] === "function";
+  }
+
+  function rate() {
+    return has("getPlaybackRate") ? (player.getPlaybackRate() || 1) : 1;
+  }
+
+  function duration() {
+    return has("getDuration") ? (player.getDuration() || 0) : 0;
+  }
+
+  function postReady() {
+    post({ type: "ready", duration: duration() });
+    if (has("getAvailablePlaybackRates")) {
+      post({ type: "rates", rates: player.getAvailablePlaybackRates() || [] });
+    }
+  }
+
+  function createPlayer(videoId, start) {
+    playerReady = false;
+    player = new YT.Player("player", {
+      width: "100%",
+      height: "100%",
+      videoId: videoId,
+      playerVars: {
+        playsinline: 1,
+        rel: 0,
+        controls: 1,
+        enablejsapi: 1,
+        start: Math.max(0, Math.floor(start || 0)),
+        origin: ORIGIN,
+        widget_referrer: ORIGIN
+      },
+      events: {
+        onReady: function () {
+          playerReady = true;
+          postReady();
+        },
+        onStateChange: function (event) {
+          post({ type: "state", state: event.data });
+          if (awaitingCue && (event.data === 5 || event.data === 1 || event.data === 2)) {
+            awaitingCue = false;
+            postReady();
+          }
+        },
+        onPlaybackRateChange: function (event) {
+          post({ type: "rate", rate: event.data });
+        },
+        onError: function (event) {
+          awaitingCue = false;
+          post({ type: "error", code: event.data });
+        }
+      }
+    });
+  }
+
+  function resetPlaybackState() {
+    loop = null;
+    range = null;
+    wrapping = false;
+    stopMeasure();
+  }
+
+  function stopMeasure() {
+    if (measure && measure.timer) { clearInterval(measure.timer); }
+    measure = null;
+  }
+
+  window.onYouTubeIframeAPIReady = function () {
+    apiReady = true;
+    post({ type: "apiReady" });
+    if (pendingLoad) {
+      var load = pendingLoad;
+      pendingLoad = null;
+      createPlayer(load.id, load.start);
+    }
+  };
+
+  window.__plApiFailed = function () {
+    if (!apiReady) { post({ type: "apiUnavailable" }); }
+  };
+
+  setTimeout(function () {
+    if (!apiReady) { post({ type: "apiUnavailable" }); }
+  }, API_TIMEOUT_MS);
+
+  // ループと範囲の判定は JS の中で行う（50ms ごと）。
+  // getCurrentTime() が loopEnd − comp 以上になったら seekTo(loopStart, true)。
+  setInterval(function () {
+    if (!has("getPlayerState")) { return; }
+    if (player.getPlayerState() !== 1) { return; }
+    var t = player.getCurrentTime();
+    var c = comp * rate();
+    if (range) {
+      if (t >= range.e - c) {
+        range = null;
+        player.pauseVideo();
+        post({ type: "rangeEnd", t: t });
+      }
+      return;
+    }
+    if (!loop || wrapping || now() < wrapGuardUntil) { return; }
+    if (t >= loop.e - c) {
+      post({ type: "loopWrap", overshoot: t - loop.e });
+      if (gap > 0) {
+        wrapping = true;
+        player.pauseVideo();
+        setTimeout(function () {
+          wrapping = false;
+          if (!loop) { return; }
+          player.seekTo(loop.s, true);
+          player.playVideo();
+          wrapGuardUntil = now() + 200;
+        }, gap * 1000);
+      } else {
+        player.seekTo(loop.s, true);
+        wrapGuardUntil = now() + 200;
+      }
+    }
+  }, LOOP_INTERVAL_MS);
+
+  setInterval(function () {
+    if (!has("getPlayerState")) { return; }
+    var state = player.getPlayerState();
+    if (state !== 1 && state !== 3) { return; }
+    post({ type: "time", t: player.getCurrentTime(), d: duration() });
+  }, TIME_INTERVAL_MS);
+
+  function guarded(fn) {
+    return function () {
+      try { return fn.apply(null, arguments); } catch (e) { return undefined; }
+    };
+  }
+
+  window.pl = {
+    load: guarded(function (id, start) {
+      resetPlaybackState();
+      if (!apiReady) { pendingLoad = { id: id, start: start }; return; }
+      if (!player) { createPlayer(id, start); return; }
+      if (!playerReady) {
+        try { player.destroy(); } catch (e) {}
+        player = null;
+        var holder = document.getElementById("player");
+        if (!holder) {
+          holder = document.createElement("div");
+          holder.id = "player";
+          document.body.appendChild(holder);
+        }
+        createPlayer(id, start);
+        return;
+      }
+      awaitingCue = true;
+      player.cueVideoById({ videoId: id, startSeconds: Math.max(0, start || 0) });
+    }),
+    configure: guarded(function (compensation, loopGap) {
+      comp = Math.max(0, compensation || 0);
+      gap = Math.max(0, loopGap || 0);
+    }),
+    play: guarded(function () { if (has("playVideo")) { player.playVideo(); } }),
+    pause: guarded(function () { if (has("pauseVideo")) { player.pauseVideo(); } }),
+    seek: guarded(function (t) {
+      if (!has("seekTo")) { return; }
+      player.seekTo(Math.max(0, t), true);
+      wrapGuardUntil = now() + 200;
+      post({ type: "time", t: Math.max(0, t), d: duration() });
+    }),
+    setRate: guarded(function (r) { if (has("setPlaybackRate")) { player.setPlaybackRate(r); } }),
+    setLoop: guarded(function (s, e) {
+      range = null;
+      wrapping = false;
+      loop = { s: s, e: e };
+    }),
+    clearLoop: guarded(function () { loop = null; wrapping = false; }),
+    playRange: guarded(function (s, e) {
+      if (!has("seekTo")) { return; }
+      loop = null;
+      wrapping = false;
+      range = { s: s, e: e };
+      player.seekTo(s, true);
+      player.playVideo();
+    }),
+    // S-5: seekTo を呼んでから、getCurrentTime が目標の ±0.1 秒に入り、playerState が PLAYING になるまで
+    measureSeek: guarded(function (target) {
+      if (!has("seekTo")) { post({ type: "seekMeasured", target: target, latency: -1 }); return; }
+      stopMeasure();
+      loop = null;
+      range = null;
+      var startedAt = now();
+      player.seekTo(target, true);
+      player.playVideo();
+      measure = {
+        target: target,
+        startedAt: startedAt,
+        timer: setInterval(function () {
+          if (!measure) { return; }
+          var elapsed = now() - measure.startedAt;
+          var t = player.getCurrentTime();
+          if (player.getPlayerState() === 1 && Math.abs(t - measure.target) <= 0.1) {
+            post({ type: "seekMeasured", target: measure.target, latency: elapsed / 1000 });
+            stopMeasure();
+          } else if (elapsed > 5000) {
+            post({ type: "seekMeasured", target: measure.target, latency: -1 });
+            stopMeasure();
+          }
+        }, MEASURE_INTERVAL_MS)
+      };
+    })
+  };
+})();
+</script>
+<script src="https://www.youtube.com/iframe_api" onerror="window.__plApiFailed()"></script>
+</body>
+</html>

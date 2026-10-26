@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>サポート | フレーズログ</title>
+<style>
+  :root { --bg: #F7F5F0; --text: #1C1B19; --sub: #5E5A52; --ink: #2536A8; --line: #DDD8CC; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #16171C; --text: #EDEBE6; --sub: #A9A59C; --ink: #A8B3FF; --line: #34353D; } }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.8 -apple-system, "Hiragino Sans", sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 26px; line-height: 1.4; margin: 0 0 4px; }
+  h2 { font-size: 19px; margin: 36px 0 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+  h3 { font-size: 16px; margin: 20px 0 4px; }
+  p, li { margin: 8px 0; }
+  .meta { color: var(--sub); font-size: 14px; }
+  a { color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <h1>フレーズログ サポート</h1>
+  <p class="meta">好きな動画が、対訳つきの1文リピート教材に</p>
+
+  <h2>お問い合わせ</h2>
+  <p>不具合のご報告やご要望は、次のアドレスにお送りください。</p>
+  <p>【連絡先メール】</p>
+  <p>不具合の場合は、iPhone の機種・iOS のバージョン・動画の URL・表示されたメッセージを書き添えていただくと、早く調べられます。</p>
+
+  <h2>よくある質問</h2>
+
+  <h3>API キーはなぜ必要ですか？</h3>
+  <p>動画の英文と和訳を作る解析を、あなた自身の Google（Gemini）の API キーで行うためです。開発者のサーバーを通さないので、1日の上限や広告がなく、アプリは買い切りで提供できます。キーはアプリ内の案内に沿って約3分で作れます。</p>
+
+  <h3>キーを貼り付けても「確認できませんでした」と出ます</h3>
+  <ul>
+    <li>キーの前後に空白や改行が入っていないか確かめてください。</li>
+    <li>Google AI Studio で作ったキーか、Google Cloud で「Generative Language API」が有効になっているか確かめてください。</li>
+    <li>お住まいの地域で Gemini API が使えない場合は、確認できません。</li>
+  </ul>
+
+  <h3>お金はかかりますか？</h3>
+  <p>アプリの基本機能は無料です。自分の動画からのノートは、無料で累計10件まで作れます。Pro（1,500円・買い切り）にすると無制限になります。月額料金はありません。キーの費用（Google の無料枠を超えた場合）は Google への支払いで、アプリの価格とは関係ありません。</p>
+
+  <h3>使えない動画があります</h3>
+  <p>公開されている動画だけが対象です。非公開・限定公開の動画、ライブ配信中の動画、投稿者が埋め込みを許可していない動画、60分を超える動画は使えません。</p>
+
+  <h3>英文の区切りや和訳がずれています</h3>
+  <p>英文と和訳は AI が生成するため、ずれや誤りが含まれることがあります。1文ループ中に「開始・終了 ±0.2秒」のボタンで区切りを直せます（後ろの文にも自動で反映されます）。文の長押しで、英文と和訳を編集できます。</p>
+
+  <h3>機種変更したらデータはどうなりますか？</h3>
+  <p>Pro の iCloud 同期をオンにしていれば、新しい端末に引き継がれます。API キーは引き継がれないので、新しい端末でもう一度登録してください。購入済みの Pro は、課金画面の「購入を復元」で戻せます。</p>
+
+  <h3>返金したい</h3>
+  <p>App Store での購入の返金は Apple が受け付けています。<a href="https://reportaproblem.apple.com/">reportaproblem.apple.com</a> から手続きしてください。</p>
+
+  <h2>関連ページ</h2>
+  <ul>
+    <li><a href="privacy.html">プライバシーポリシー</a></li>
+  </ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>プライバシーポリシー | フレーズログ</title>
+<style>
+  :root { --bg: #F7F5F0; --text: #1C1B19; --sub: #5E5A52; --ink: #2536A8; --line: #DDD8CC; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #16171C; --text: #EDEBE6; --sub: #A9A59C; --ink: #A8B3FF; --line: #34353D; } }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.8 -apple-system, "Hiragino Sans", sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 26px; line-height: 1.4; margin: 0 0 4px; }
+  h2 { font-size: 19px; margin: 36px 0 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+  p, li { margin: 8px 0; }
+  .meta { color: var(--sub); font-size: 14px; }
+  a { color: var(--ink); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<main>
+  <h1>プライバシーポリシー</h1>
+  <p class="meta">フレーズログ（iOS アプリ）／制定日: 2026年10月26日</p>
+
+  <p>フレーズログ（以下「本アプリ」）の開発者（以下「開発者」）は、利用者のプライバシーを大切にし、利用者の情報を収集しない設計にしています。このページでは、本アプリがどの情報を、どこに送り、どこに保存するかを説明します。</p>
+
+  <h2>1. 開発者が収集する情報</h2>
+  <p><strong>ありません。</strong>開発者はサーバーを運用しておらず、本アプリには解析・広告・クラッシュ収集のための外部 SDK も入っていません。アカウント登録もありません。</p>
+
+  <h2>2. Google（Gemini API）に送る情報</h2>
+  <p>動画の対訳を作るとき、本アプリは、利用者ご自身が登録した Google の API キーを使い、端末から Google の Gemini API へ直接リクエストを送ります。開発者のサーバーは経由しません。</p>
+  <table>
+    <tr><th>送る情報</th><td>解析する YouTube 動画の URL、解析の指示文、訳し直しを選んだときの英文（利用者が編集した文を含む）</td></tr>
+    <tr><th>送らない情報</th><td>氏名・メールアドレス・端末の識別子・視聴履歴・ほかのノートの内容</td></tr>
+  </table>
+  <p>送った情報は、Google のプライバシー ポリシーと Gemini API 追加利用規約に従って扱われます。Google の無料枠で API を使う場合、送った内容と生成結果が Google の製品の改善に使われることがあります。本アプリは、初めて送る前に、この内容を説明する画面を表示し、同意を得ます。</p>
+
+  <h2>3. YouTube の埋め込みプレイヤー</h2>
+  <p>本アプリは、動画の再生に YouTube の公式の埋め込みプレイヤー（YouTube API サービス）を使います。再生時には、YouTube（Google）が自身のポリシーに従って情報を扱います。本アプリは、動画・音声・字幕のファイルをダウンロードも保存もしません。</p>
+  <ul>
+    <li><a href="https://www.youtube.com/t/terms">YouTube 利用規約</a></li>
+    <li><a href="https://policies.google.com/privacy">Google プライバシー ポリシー</a></li>
+    <li><a href="https://ai.google.dev/gemini-api/terms">Gemini API 追加利用規約</a></li>
+  </ul>
+
+  <h2>4. 端末に保存する情報</h2>
+  <ul>
+    <li><strong>API キー</strong>: 端末のキーチェーンに保存します。この端末だけに残り、iCloud キーチェーンには同期しません。</li>
+    <li><strong>ノート・対訳・復習カード・学習の記録</strong>: 端末の中に保存します。</li>
+    <li><strong>iCloud 同期（Pro）</strong>: オンにした場合、ノートと復習カードは、利用者ご自身の iCloud（CloudKit のプライベートデータベース）に保存されます。開発者はこのデータを読めません。</li>
+  </ul>
+
+  <h2>5. 通知</h2>
+  <p>毎日の復習の通知は、端末の中で予約するローカル通知です。通知のために情報を外部に送ることはありません。</p>
+
+  <h2>6. お子さまの利用</h2>
+  <p>本アプリは、お子さまの情報を含め、利用者の情報を収集しません。Google の API キーの作成には、Google の利用条件（年齢の条件を含む）が適用されます。</p>
+
+  <h2>7. 情報の削除</h2>
+  <p>アプリを削除すると、端末に保存された情報はすべて消えます。API キーは、設定の「API キー」から削除できます。iCloud に保存したデータは、iPhone の「設定」→［ユーザ名］→「iCloud」→「ストレージを管理」から削除できます。</p>
+
+  <h2>8. このポリシーの変更</h2>
+  <p>内容を変更する場合は、このページで告知します。</p>
+
+  <h2>9. お問い合わせ</h2>
+  <p>【連絡先メール】</p>
+</main>
+</body>
+</html>
